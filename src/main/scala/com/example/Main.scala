@@ -53,7 +53,7 @@ object Main extends App {
 
   def run(args: List[String]): ZIO[zio.ZEnv, Nothing, Int] =
     loadConfig.flatMap { rawConfig =>
-      val configLayer = TypesafeConfig.fromHocon(rawConfig, AppConfig.description)
+      val configLayer = TypesafeConfig.fromTypesafeConfig(rawConfig, AppConfig.descriptor)
 
       // using raw config since it's recommended and the simplest to work with slick
       /*val dbConfigLayer = ZLayer.fromEffect(ZIO.effect {
@@ -61,7 +61,7 @@ object Main extends App {
         new Config.Service[DatabaseConfig] { def config = dbc }
       })*/
       // narrowing down to the required part of the config to ensure separation of concerns
-      val apiConfigLayer = configLayer.map(c => Has(new Config.Service[ApiConfig] { def config = c.get.config.api }))
+      val apiConfigLayer = configLayer.map(c => Has(c.get.api))
 
       //val dbLayer = ((dbConfigLayer >>> DatabaseProvider.live) ++ loggingLayer) >>> SlickItemRepository.live
       val api     = apiConfigLayer >>> Api.live
