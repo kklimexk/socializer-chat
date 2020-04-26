@@ -12,7 +12,7 @@ lazy val root = (project in file(".")).settings(
       scalaVersion := "2.13.1"
     )
   ),
-  name := "socializer-zio-chat",
+  name := "socializer-chat",
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
   libraryDependencies ++= Seq(
     "com.typesafe.akka"  %% "akka-http"                   % akkaHttpVersion,
