@@ -18,7 +18,12 @@ object Api {
   val live: ZLayer[Config[ApiConfig], Nothing, Api] = ZLayer.fromFunction(env =>
     new Service with ZioSupport {
 
-      def routes: Route = webSocketRoute
+      def routes: Route = httpRoute ~ webSocketRoute
+
+      val httpRoute: Route =
+        pathSingleSlash {
+          getFromFile("frontend/index.html")
+        }
 
       val webSocketRoute: Route =
         path("greeter") {
