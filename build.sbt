@@ -1,22 +1,22 @@
-lazy val akkaHttpVersion   = "10.1.11"
-lazy val akkaVersion       = "2.6.4"
+lazy val akkaHttpVersion   = "10.1.12"
+lazy val akkaVersion       = "2.6.8"
 lazy val slickVersion      = "3.3.2"
-lazy val zioVersion        = "1.0.0-RC18-2"
-lazy val zioLoggingVersion = "0.2.7"
-lazy val zioConfigVersion  = "1.0.0-RC16-1"
+lazy val zioVersion        = "1.0.0-RC20"
+lazy val zioLoggingVersion = "0.3.1"
+lazy val zioConfigVersion  = "1.0.0-RC20"
 
 lazy val root = (project in file(".")).settings(
   inThisBuild(
     List(
       organization := "com.example",
-      scalaVersion := "2.13.1"
+      scalaVersion := "2.13.3"
     )
   ),
   name := "socializer-chat",
   addCompilerPlugin("com.olegpy" %% "better-monadic-for" % "0.3.1"),
   libraryDependencies ++= Seq(
     "com.typesafe.akka"  %% "akka-http"                   % akkaHttpVersion,
-    "de.heikoseeberger"  %% "akka-http-play-json"         % "1.31.0",
+    "de.heikoseeberger"  %% "akka-http-play-json"         % "1.33.0",
     "com.typesafe.akka"  %% "akka-actor-typed"            % akkaVersion,
     "com.typesafe.akka"  %% "akka-stream"                 % akkaVersion,
     "com.typesafe.slick" %% "slick"                       % slickVersion,
@@ -25,12 +25,15 @@ lazy val root = (project in file(".")).settings(
     "dev.zio"            %% "zio-config"                  % zioConfigVersion,
     "dev.zio"            %% "zio-config-magnolia"         % zioConfigVersion,
     "dev.zio"            %% "zio-config-typesafe"         % zioConfigVersion,
-    "dev.zio"            %% "zio-interop-reactivestreams" % "1.0.3.5-RC6",
+    "io.scalac"          %% "zio-akka-http-interop"       % "0.1.0",
+    "io.scalac"          %% "zio-slick-interop"           % "0.1.0",
+    "dev.zio"            %% "zio-interop-reactivestreams" % "1.0.3.5-RC11",
     "ch.qos.logback"     % "logback-classic"              % "1.2.3",
     "dev.zio"            %% "zio-logging"                 % zioLoggingVersion,
     "dev.zio"            %% "zio-logging-slf4j"           % zioLoggingVersion,
     "com.h2database"     % "h2"                           % "1.4.200",
     "com.typesafe.akka"  %% "akka-http-testkit"           % akkaHttpVersion % Test,
+    "com.typesafe.akka"  %% "akka-stream-testkit"         % akkaVersion % Test,
     "com.typesafe.akka"  %% "akka-actor-testkit-typed"    % akkaVersion % Test,
     "dev.zio"            %% "zio-test-sbt"                % zioVersion % Test
   ),

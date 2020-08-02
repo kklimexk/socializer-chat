@@ -1,20 +1,6 @@
 
 package com.example.api
 
-import akka.http.scaladsl.marshalling.Marshal
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Route
-import com.example.api.Api._
-import com.example.application.ApplicationService
-import com.example.config.ApiConfig
-import com.example.interop.akka.ZioRouteTest
-import play.api.libs.json.JsObject
-import zio._
-import zio.blocking._
-import zio.test.Assertion._
-import zio.test._
-import zio.config.Config
-
 /*object ApiSpec extends ZioRouteTest {
 
   private val env =
