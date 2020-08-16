@@ -1,13 +1,16 @@
 package com.example.api
 
+import akka.NotUsed
 import akka.event.Logging._
-import akka.http.interop.ZIOSupport
+import akka.http.interop.{HttpServer, ZIOSupport}
+import akka.http.scaladsl.model.ws.{Message, TextMessage}
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.stream.scaladsl.{Flow, Source}
 import com.example.application.ApplicationService
-import com.example.config.ApiConfig
 import zio.ZLayer
-import zio.config.Config
+import zio.config.ZConfig
+import zio.interop.reactivestreams._
 
 object Api {
 
@@ -15,7 +18,7 @@ object Api {
     def routes: Route
   }
 
-  val live: ZLayer[Config[ApiConfig], Nothing, Api] = ZLayer.fromFunction(_ =>
+  val live: ZLayer[ZConfig[HttpServer.Config], Nothing, Api] = ZLayer.fromFunction(_ =>
     new Service with ZIOSupport {
 
       def routes: Route = httpRoute ~ webSocketRoute
@@ -28,9 +31,21 @@ object Api {
       val webSocketRoute: Route =
         path("greeter") {
           logRequestResult(("greeter", InfoLevel)) {
-            get {
-              handleWebSocketMessages(ApplicationService.greeterWebSocketService)
-            }
+            val greeterWebSocketService: Flow[Message, TextMessage, NotUsed] =
+              Flow[Message].flatMapConcat {
+                case tm: TextMessage if tm.getStrictText == "cmd1" =>
+                  Source.futureSource(
+                    unsafeRunToFuture(
+                      ApplicationService.helloStream.toPublisher
+                        .map(p =>
+                          Source
+                            .fromPublisher(p)
+                            .map(m => TextMessage(Source.single(s"Hello $m") ++ tm.textStream))
+                        )
+                    )
+                  )
+              }
+            handleWebSocketMessages(greeterWebSocketService)
           }
         }
     }

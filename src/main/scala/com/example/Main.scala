@@ -1,13 +1,14 @@
 package com.example
 
 import akka.actor.ActorSystem
+import akka.http.interop.HttpServer
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.server.Route
 import com.example.api.Api
-import com.example.config.{ApiConfig, AppConfig}
+import com.example.config.AppConfig
 import com.typesafe.config.ConfigFactory
+import zio.config.{ZConfig, config}
 import zio.config.typesafe.TypesafeConfig
-import zio.config.{Config, config}
 import zio.console._
 import zio.logging._
 import zio.logging.slf4j._
@@ -19,24 +20,17 @@ object Main extends App {
     ZIO(ConfigFactory.load.resolve).flatMap { rawConfig =>
       val configLayer = TypesafeConfig.fromTypesafeConfig(rawConfig, AppConfig.descriptor)
 
-      // using raw config since it's recommended and the simplest to work with slick
-      /*val dbConfigLayer = ZLayer.fromEffect(ZIO.effect {
-        val dbc = DatabaseConfig(rawConfig.getConfig("db"))
-        new Config.Service[DatabaseConfig] { def config = dbc }
-      })*/
-      // narrowing down to the required part of the config to ensure separation of concerns
       val apiConfigLayer = configLayer.map(c => Has(c.get.api))
 
-      //val dbLayer = ((dbConfigLayer >>> DatabaseProvider.live) ++ loggingLayer) >>> SlickItemRepository.live
       val api = apiConfigLayer >>> Api.live
       val liveEnv = actorSystemLayer ++ Console.live ++ api ++ apiConfigLayer
 
       program.provideLayer(liveEnv)
     }.exitCode
 
-  val program: ZIO[Console with Api with Has[ActorSystem] with Config[ApiConfig], Throwable, Unit] =
+  val program: ZIO[Console with Api with Has[ActorSystem] with ZConfig[HttpServer.Config], Throwable, Unit] =
     for {
-      cfg <- config[ApiConfig]
+      cfg <- config[HttpServer.Config]
       implicit0(system: ActorSystem) <- ZIO.access[Has[ActorSystem]](_.get[ActorSystem])
       api <- ZIO.access[Api](_.get)
       _ <- bindAndHandle(api.routes, cfg.host, cfg.port).use { _ =>
